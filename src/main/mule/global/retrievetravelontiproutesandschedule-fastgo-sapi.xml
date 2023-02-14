@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd ">
+    <flow name="retrievetravelontiproutesandschedule-fastgo-sapi-main">
+        <http:listener path="/api/*" config-ref="retrievetravelontiproutesandschedule-fastgo-sapi-httpListenerConfig">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body><![CDATA[#[payload]]]></http:body>
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:router config-ref="retrievetravelontiproutesandschedule-fastgo-sapi-config" />
+		<error-handler ref="globalErrorHandlerError_Handler" />
+    </flow>
+    <flow name="retrievetravelontiproutesandschedule-fastgo-sapi-console">
+        <http:listener path="/console/*" config-ref="retrievetravelontiproutesandschedule-fastgo-sapi-httpListenerConfig">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body><![CDATA[#[payload]]]></http:body>
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:console config-ref="retrievetravelontiproutesandschedule-fastgo-sapi-config" />
+		<error-handler ref="globalErrorHandlerError_Handler" />
+    </flow>
+    <sub-flow name="retrievetravelontiproutesandschedule-sapi-InitialiseRequestVariable-Sub_Flow" doc:id="afc1b0f5-50fc-442b-9a75-16eab6b3b7e8">
+		<ee:transform doc:name="Transform Message" doc:id="ae8b7314-47c9-492f-b6e3-cd384f624b74">
+			<ee:variables>
+				<ee:set-variable variableName="transportType"><![CDATA[attributes.uriParams.'transportType']]></ee:set-variable>
+				<ee:set-variable variableName="transportCompany"><![CDATA[attributes.uriParams.'transportCompany']]></ee:set-variable>
+				<ee:set-variable variableName="transactionId"><![CDATA[%dw 2.0
+output application/java
+---
+attributes.headers.transactionId]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+	</sub-flow>
+	<flow name="get:\(transportType)\(transportCompany)\routes:retrievetravelontiproutesandschedule-fastgo-sapi-config">
+        <flow-ref doc:name="Flow Reference Initialise Request Variable" doc:id="445dbb23-2d2e-40e9-853d-0270d8d3fafb" name="retrievetravelontiproutesandschedule-sapi-InitialiseRequestVariable-Sub_Flow"/>
+		<logger level="INFO" doc:name="Logger" doc:id="bfc13e8c-2016-44b9-975d-a1393a63d87a" message="Request Received for Routes FastGo SAPI For TransactionId #[attributes.headers.transactionId]"/>
+		<flow-ref doc:name="Flow Reference" doc:id="ea0a0010-60db-4217-b917-a260e6f71dee" name="fastGo-getRoutes-implementation-Sub_Flow"/>
+		<logger level="INFO" doc:name="Logger" doc:id="de18ff08-630c-47ab-9204-adbc4cbfa390" message="Response Sent for Routes FastGo SAPI For TransactionId #[attributes.headers.transactionId]"/>
+    </flow>
+	<flow name="get:\(transportType)\(transportCompany)\schedules:retrievetravelontiproutesandschedule-fastgo-sapi-config">
+        <flow-ref doc:name="Flow Reference Initialise Request Variable" doc:id="c0aec61b-6f14-46b0-8ef2-852d21abe506" name="retrievetravelontiproutesandschedule-sapi-InitialiseRequestVariable-Sub_Flow"/>
+		<logger level="INFO" doc:name="Logger" doc:id="2e30a34a-70a2-4c5e-9e4f-5e7255c9020b" message="Request Received for Schedules FastGo SAPI For TransactionId #[attributes.headers.transactionId]"/>
+		<flow-ref doc:name="Flow Reference" doc:id="cbbd9702-9fca-4ee6-8d4b-de45dad173c7" name="fastGo-getSchedules-implementation-Sub_Flow"/>
+		<logger level="INFO" doc:name="Logger" doc:id="65b91f7a-dc94-4631-acf4-b0d8f57d0734" message="Response Sent for Schedules FastGo SAPI For TransactionId #[attributes.headers.transactionId]"/>
+    </flow>
+</mule>
